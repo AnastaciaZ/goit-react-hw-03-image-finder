@@ -1,28 +1,29 @@
 import { Component } from 'react';
+import { toast } from 'react-toastify';
 import s from '../Searchbar/Searchbar.module.css';
 
-export default class Searchbar extends Component{
+export default class Searchbar extends Component { 
   state = {
-    imageName: '',
+    inputValue: '',
   };
 
-  handleNameChange = event => {
-    this.setState({ imageName: event.currentTarget.value.toLowerCase() });
-  };
+    handleChange = event => {
+        this.setState({ inputValue: event.target.value.toLowerCase() });
+    };
 
-  handleSubmit = event => {
-    event.preventDefault();
-
-    if (this.state.imageName.trim() === '') { 
-      alert('Введите слово для поиска');
+    handleSubmit = event => {
+      event.preventDefault();
+      
+       if (this.state.inputValue.trim() === '') { 
+      toast.warn('Введите слово для поиска');
       return;
     }
 
-    this.props.onSubmit(this.state.imageName);
-    this.setState({ imageName: '' });
-  };
+        this.props.onSubmit(this.state.inputValue);
+        this.setState({ inputValue: '' });
+    };
 
-  render() { 
+    render() { 
     return (
       <header className={s.Searchbar}>
         <form onSubmit={ this.handleSubmit} className={s.SearchForm}>
@@ -34,8 +35,8 @@ export default class Searchbar extends Component{
             className={s.SearchFormInput}
             type="text"
             name="imageName"
-            value={this.state.imageName}
-            onChange={ this.handleNameChange}
+            value={this.state.inputValue}
+            onChange={ this.handleChange}
             autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
@@ -45,6 +46,3 @@ export default class Searchbar extends Component{
     );
   }
 }
-
-
-
