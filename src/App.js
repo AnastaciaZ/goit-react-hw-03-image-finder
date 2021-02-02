@@ -1,16 +1,15 @@
 import { Component } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Loader from "react-loader-spinner";
 
 import Searchbar from './components/Searchbar/Searchbar';
 import imagesApi from './services/imagesApi';
 import ImageGallery from './components/ImageGallery/ImageGallery';
 import ImageGalleryItem from './components/ImageGalleryItem/ImageGalleryItem';
+import Loading from './components/Loader/Loading';
 import Button from './components/Button/Button';
 import Modal from './components/Modal/Modal';
 
-import s from './App.module.css';
 import './App.css';
 
 export default class App extends Component { 
@@ -23,17 +22,14 @@ export default class App extends Component {
     largeImageURL: null,
   };
 
-  componentDidMount() {
-    this.setState({ loading: true });
-  }
-
   componentDidUpdate(prevProps, prevState) { 
     const prevQuery = prevState.searchQuery;
     const nextQuery = this.state.searchQuery;
 
     if (prevQuery !== nextQuery) {  
-      this.fetchImages();
+      
       this.setState({ loading: true });
+      this.fetchImages();
       
     }
   }
@@ -43,14 +39,18 @@ export default class App extends Component {
     
     imagesApi
       .fetchImgQuery(searchQuery, page)
-      .then(images =>
+      .then(images => {
+        if (images.length === 0) {
+          toast.warn('К сожалению по вашему запросу ничего не найдено');
+          return;
+        }
         this.setState(prevState => ({
           images: [...prevState.images, ...images],
           page: prevState.page + 1,
         }), this.scrollTo,
-        ),
-    )
-      .catch(error => this.setState({ error }))
+        )
+      })
+      .catch(error => this.setState( toast.error(`Oooops!${error.message}`)))
       .finally(() => this.setState({ loading: false }));
   };
 
@@ -75,12 +75,12 @@ export default class App extends Component {
    this.setState({ largeImageURL})
  };
   
-  closeModal = () => { 
-    this.setState({ largeImageURL: null})
-  }
+closeModal = () => { 
+  this.setState({ largeImageURL: null})
+}
   
   render() { 
-    const { images, error, loading, largeImageURL } = this.state;
+    const { images, loading, largeImageURL } = this.state;
 
     return (
       <div>
@@ -96,17 +96,6 @@ export default class App extends Component {
           draggable
           pauseOnHover
         />
-
-        {error && <h1>{error.message}</h1>}
-
-        {loading && <div className={s.loader}>
-          <Loader
-        type="ThreeDots"
-        color="#3f51b5"
-        height={50}
-        width={50}
-        timeout={2000}/>
-        </div>}
         
         {images.length > 0 && <ImageGallery
           images={images}
@@ -117,6 +106,8 @@ export default class App extends Component {
             openModal={this.openModal} />
           
         </ImageGallery>}
+
+        {loading && <Loading/>}
 
         {images.length > 0 && !loading && <Button onLoadMore={this.fetchImages} />}
 
